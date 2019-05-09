@@ -12,9 +12,11 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 var seed = map[string]string{} // map[rom crc32]"file path"
+var zipseed = map[string]string{}
 
 type Datfile struct {
 	Header Header `xml:"header"`
@@ -83,10 +85,20 @@ func walkSourceDir(root string) {
 		if err != nil {
 			fmt.Println("error: ", err)
 		}
+		// is it a file ?
 		if !info.IsDir() {
-			currentCRC32 := getFileCRC32(path)
-			seed[currentCRC32] = path
-			// fmt.Print("\r", path, " ", currentCRC32)
+			// is it a zip file ?
+			if strings.HasSuffix(path, ".zip") || strings.HasSuffix(path, ".ZIP") {
+				zr, _ := zip.OpenReader(path)
+				for _, f := range zr.File {
+					crc := fmt.Sprintf("%x", f.CRC32)
+					zipseed[crc] = path
+				}
+			} else {
+				// oh, it's not an archive, then ?
+				crc := getFileCRC32(path)
+				seed[crc] = path
+			}
 
 		}
 
@@ -206,7 +218,9 @@ func main() {
 	l("found", len(datFile.Sets), "sets and", len(rom), "roms")
 
 	l("parsing source directory", *sourcePtr)
+	// Let's recursively parse source dir
 	walkSourceDir(*sourcePtr)
+
 	l("identified", len(seed), "unique roms in directory", *sourcePtr)
 
 	// Let's see what we have...
@@ -215,7 +229,8 @@ func main() {
 		for _, r := range s.Roms {
 
 			_, gotIt := seed[r.Crc]
-			complete = complete && gotIt
+			_, gotItZip := zipseed[r.Crc]
+			complete = complete && (gotIt || gotItZip)
 		}
 		if complete {
 			l("Set", s.Name, "is complete")
