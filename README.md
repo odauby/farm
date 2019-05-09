@@ -1,5 +1,5 @@
-# farm
-FARM Ain't a Rom Manager
+# FARM
+## FARM Ain't a Rom Manager
 
 The purpose of this project is to create a small command-line based tool to manage roms in the simplest way possible.
 
@@ -33,3 +33,8 @@ $ farm -datfile mame209.dat -source ./chaosdir -dest ./roms -mode nonmerge
 2019/05/09 22:17:02 Set puckman is complete
 2019/05/09 22:17:02 creating zip: ./roms/puckman.zip
 ```
+## Limitations
+As mentionned above, this project is really at early stage and is clearly not feature complete.
+Main features that are still missing:
+* FARM does not parse the content of ZIP files in the source dir, only uncompressed (raw rom) files are supported.
+* FARM does not have ability to create merged ZIPs in the destination directory, only non-merged and split are currently supported.
